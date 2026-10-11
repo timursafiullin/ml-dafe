@@ -1,0 +1,12 @@
+# Private files
+.env
+data/
+.ipynb_checkpoints/
+
+# Study-materials
+*lectures
+*seminars
+
+# hw1
+s1/hw1/*.tex
+s1/hw1/*_example.ipynb
