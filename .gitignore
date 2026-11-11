@@ -1,6 +1,8 @@
 # Private files
 .env
 data/
+*.zip
+submission.csv
 .ipynb_checkpoints/
 
 # Study-materials
