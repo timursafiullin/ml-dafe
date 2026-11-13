@@ -3,5 +3,5 @@
 ### Навигация
 
 * **Осенний семестр**
-* * [Задание 1. Jupyter Notebook с решением.](./s1/hw1/ml-dafe-s1-hw1.ipynb)
-* * [Задание 1. Итоговый отчёт по заданию (PDF).](./s1/hw1/report-final.pdf)
+* * [Задание 1. Jupyter Notebook с решением.](./s1/hw1/timur_safiullin_1hw.ipynb)
+* * [Задание 1. Итоговый отчёт по заданию (PDF).](./s1/hw1/timur_safiullin_1hw.pdf)
