@@ -12,4 +12,9 @@ submission.csv
 # hw1
 s1/hw1/*.tex
 s1/hw1/*_example.ipynb
-!s1/hw1/report-final.tex
+!s1/hw1/timur_safiullin_1hw.tex
+
+# hw2
+s1/hw2/*.tex
+s1/hw2/*_example.ipynb
+!s1/hw2/timur_safiullin_2hw.tex
