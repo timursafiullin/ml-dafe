@@ -1,11 +1,5 @@
-% ================================================================
-%  Шаблон отчёта для ДЗ №2 «Триаж»
-%  Компилируется в Overleaf через XeLaTeX (Menu -> Compiler -> XeLaTeX)
-% ================================================================
-
+% ДЗ №2 «Триаж». Компилятор: XeLaTeX.
 \documentclass[11pt,a4paper,twocolumn]{article}
-
-% ---- Кодировка и шрифты для русского ----
 \usepackage{fontspec}
 \usepackage{polyglossia}
 \setmainlanguage{russian}
@@ -13,341 +7,329 @@
 \setmainfont{CMU Serif}
 \setsansfont{CMU Sans Serif}
 \setmonofont{CMU Typewriter Text}
+\newfontfamily\cyrillicfonttt{CMU Typewriter Text}
 
-% ---- Остальные пакеты ----
 \usepackage[margin=2cm]{geometry}
-\usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{hyperref}
-\usepackage{xcolor}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{caption}
-\usepackage{float}
-\usepackage{parskip}
+\usepackage{graphicx,booktabs,array,amsmath,amssymb,caption,float,parskip}
+\usepackage{xcolor,hyperref}
+\usepackage[raggedright]{titlesec}
+\usepackage{ragged2e}
+\setlength{\columnsep}{0.7cm}
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black,
+    pdftitle={ДЗ №2. Триаж},pdfauthor={Safiullin Timur}}
+\graphicspath{{figures/}}
+\newcommand{\f}[1]{{\ttfamily\def\_{\textunderscore\allowbreak}#1}}
 
-% ---- Настройки двухколоночной вёрстки ----
-\setlength{\columnsep}{0.7cm}     % расстояние между колонками
+\usepackage{microtype,needspace}
+\captionsetup{font=small,skip=6pt,justification=RaggedRight,singlelinecheck=false}
+\raggedbottom
+\AtBeginDocument{\RaggedRight}
 
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue!60!black,
-    urlcolor=blue!60!black,
-    citecolor=blue!60!black,
-}
-
-% ---- Заголовок ----
-\title{
-    \vspace{-2cm}
-    \textbf{ДЗ №2: Триаж} \\
-    \large Отчёт: битва моделей
-}
-\author{
-    Фамилия Имя, группа \\
-    \texttt{kaggle-username: your\_kaggle\_id}
-}
+\title{\vspace{-2cm}\textbf{ДЗ 2: Триаж} \\
+       \large Отчёт: битва моделей}
+\author{Safiullin Timur, 415 \\
+        \texttt{kaggle-username: \href{https://www.kaggle.com/timursafiullin}{timursafiullin}}}
 \date{\today}
 
 \begin{document}
+\maketitle
 
-% ---- Заголовок и вводный блок на всю ширину ----
-\twocolumn[
-    \begin{@twocolumnfalse}
-        \maketitle
-
-        \section*{Как пользоваться этим шаблоном}
-
-        Заполняйте разделы своим содержанием, оставляя структуру. Курсивные подсказки описывают содержание раздела; перед сдачей их необходимо удалить. Критерии оценивания указаны в начале каждого раздела, их можно удалить/оставить на свое усмотрение.
-
-        Объём отчёта: не более 7 страниц в формате PDF. Оценивается содержание, а не объём.
-
-        Все F1 в отчёте — \textbf{macro}, если явно не сказано иное. «Holdout» — ваши 20\% \texttt{train.csv}, отложенные до любых экспериментов.
-
-        \textbf{Что сдать для получения оценки:} PDF этого отчёта с названием \texttt{name\_surname\_2hw.pdf}; \texttt{name\_surname\_2hw.py} или \texttt{name\_surname\_2hw.ipynb}, воспроизводящий финальный сабмит за один запуск (с фиксированными seed).
-
-        \textbf{Итого за задание: 18 место в лидерборде } .
-
-        \textbf{Штраф: минус 2 балла} за утечку информации из валидации или теста в обучение (например, \texttt{fit} энкодера или скейлера на всём train до разбиения на фолды, подбор гиперпараметров по holdout или public). Проверяется по коду.
-        \vspace{0.5cm}
-    \end{@twocolumnfalse}
-]
-
-% ================================================================
 \section{Введение}
 
-\textit{Раздел не оценивается отдельно, но является обязательным.}
+По жалобе и данным первичного осмотра нужно предсказать \f{ESI} от 1 до 5. ESI-1 – самый срочный класс. В \f{train} 8000 пациентов, в \f{test} 5000. Из признаков убрал \f{id}, потому что он тут не нужен. В Macro F1 редкий ESI-1 весит столько же, сколько частый ESI-3.
 
-\textit{В 1--2 абзацах опишите постановку задачи (целевая переменная, признаки, метрика и обоснование её выбора) и структуру данных (число объектов, признаки, классы). Укажите финальную модель, её holdout F1 и результат на public leaderboard. Раздел выполняет роль аннотации.}
+Финальный сабмит SUB-006 (\f{triage\_next.csv}) – ансамбль (не вокально-инструментальный) на основе LightGBM и CatBoost. Holdout macro F1 $0.80616$, Public Macro F1 $\mathbf{0.82261}$.
 
-% Ваш текст здесь.
-
-% ================================================================
-\section{Данные и валидация}
-\label{sec:data}
-
-\textbf{Критерии оценивания (3 балла).}
-\begin{itemize}
-    \item 1 балл — краткий EDA: баланс классов, типы признаков, корреляции, связь признаков с классом.
-    \item 1 балл — 3 явно сформулированные гипотезы: что увидели в EDA, что из этого следует для моделей, как будете проверять.
-    \item 1 балл — схема валидации (как отложен holdout, какая CV, почему стратифицированная) и проверка, что CV можно доверять: для каждой модели сравните CV F1 и holdout F1 из таблицы~\ref{tab:models} (насколько они отличаются) и проверьте, что если отсортировать модели по CV и по holdout, порядок получится одинаковый.
-\end{itemize}
-Объём EDA не влияет на оценку; оценивается обоснованность гипотез.
+\section{Данные и валидация}\label{sec:data}
 
 \subsection{Краткий EDA}
-% Таблица долей классов, корреляционная матрица или её фрагмент,
-% 1--2 графика «признак × класс». Каждой картинке — одно предложение комментария.
-%
-% Пример вставки картинки в одну колонку:
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=\columnwidth]{figures/classes.png}
-%     \caption{Распределение классов ESI.}
-%     \label{fig:classes}
-% \end{figure}
 
+На 6400 строках для экспериментов 14 числовых признаков и два категориальных (способ прибытия и жалоба). Пропусков и повторяющихся строк признаков нет. Показатели давления коррелируют ($r=0.79\dots0.95$).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{eda.png}
+    \caption{У ESI-1 выше медианный пульс. Номер талона у всех пяти классов распределён похоже.}\label{fig:eda}
+\end{figure}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Классы на 6400 строках для CV.}
+    {\small \begin{tabular}{@{}lrrrrr@{}}
+    \toprule
+    ESI & 1 & 2 & 3 & 4 & 5\\
+    \midrule
+    Пациенты & 193 & 837 & 2409 & 2093 & 868\\
+    Доля, \% & 3.0 & 13.1 & 37.6 & 32.7 & 13.6\\
+    \bottomrule
+    \end{tabular}}
+\end{table}
+
+\Needspace{13\baselineskip}
 \subsection{Гипотезы}
-\textit{Для каждой гипотезы укажите наблюдение из EDA, ожидаемое следствие для моделей и способ проверки. Результаты проверки гипотез приводятся в разделе~\ref{sec:final}.}
 
 \begin{enumerate}
-    \item % Гипотеза 1
+    \item ESI-1 всего $3\%$. Вероятно будет прирост CV F1 у Logistic Regression (далее просто «логистическая регрессия» с \f{balanced} при том же $C$.
+    \item При боли в груди встречаются все классы. Если пульс помогает их разделить, Gradient Boosting обойдёт логистическую регрессию на CV.
+    \item У талона похожие распределения. После перестановки \f{queue\_ticket} вероятно будет $|\Delta\mathrm{F1}|<0.005$ у Random Forest на holdout, то есть не сильно изменится.
 \end{enumerate}
 
 \subsection{Схема валидации}
-\textit{Опишите способ выделения holdout, схему cross-validation на оставшихся 80\% данных и место препроцессинга в пайплайне. Обоснуйте надёжность полученной оценки качества.}
 
-% Ваш текст.
+До EDA отложил 20\% в holdout. Для holdout и пяти фолдов CV использовал стратификацию и seed 42. Она сохранила по 38--39 пациентов ESI-1 в каждом валидационном фолде. Для базовых моделей one-hot и \f{StandardScaler} (только у логистической регрессии) обучал внутри \f{Pipeline}. Подбор делается по CV.
 
-% ================================================================
-\section{Сравнение моделей и Optuna}
-\label{sec:models}
-
-\textbf{Критерии оценивания (4 балла).}
-\begin{itemize}
-    \item 1 балл — пространства поиска для всех четырёх моделей (таблица~\ref{tab:spaces}) с обоснованием границ (почему такие диапазоны, почему log-шкала, почему этот набор гиперпараметров).
-    \item 1 балл — итоговая таблица~\ref{tab:models} заполнена полностью: CV, holdout, public, время обучения, время на одном объекте.
-    \item 1 балл — анализ Optuna: график сходимости (лучшее значение к trial $N$) и вывод, хватило ли 50 trials.
-    \item 1 балл — объяснение, \textbf{почему} модели расположились именно так, через их inductive bias и свойства данных.
-\end{itemize}
-Объяснение должно опираться на свойства данных и моделей; констатация результата объяснением не является.
+\section{Сравнение моделей и Optuna}\label{sec:models}
 
 \subsection{Пространства поиска}
-\begin{table*}[t]
+
+Для каждой из четырёх базовых моделей – 50 проб с \f{TPESampler(seed=42)}. Проверил \f{class\_weight} со значениями \f{None} и \f{balanced}. Повышенные веса редких классов Optuna выбрала для Random Forest. Gradient Boosting реализован на LightGBM.
+
+\begin{table*}[!t]
     \centering
-    \caption{Пространства поиска Optuna (50 trials на модель).}
-    \label{tab:spaces}
-    \begin{tabular}{llp{0.5\textwidth}}
-        \toprule
-        \textbf{Модель} & \textbf{Гиперпараметр} & \textbf{Диапазон и обоснование} \\
-        \midrule
-        Logistic Regression & \texttt{C}            & \\
-                            & \texttt{class\_weight} & \\
-        Decision Tree       & \texttt{max\_depth}    & \\
-                            & \ldots                & \\
-        Random Forest       & \ldots                & \\
-        Gradient Boosting   & \ldots                & \\
-        \bottomrule
-    \end{tabular}
+    \caption{Пространства поиска и лучшие гиперпараметры в порядке перечисления.}\label{tab:spaces}
+    {\small \begin{tabular}{@{}lp{.56\textwidth}l@{}}
+    \toprule
+    Модель & Диапазоны Optuna & Лучшее по CV\\
+    \midrule
+    Logistic Regression & $C$ от $0.001$ до $100$ (log) & $7.603$\\
+    Decision Tree & \f{max\_depth} 3--22, \f{min\_samples\_leaf} 1--48 (log), \f{criterion} gini или entropy & 21, 10, gini\\
+    Random Forest & \f{n\_estimators} 50--150 (шаг 25), \f{max\_depth} 7--22, \f{min\_samples\_leaf} 1--16 (log), \f{max\_features} $0.3$--$1.0$ (шаг $0.1$) & 75, 22, 2, $0.9$\\
+    Gradient Boosting & \f{n\_estimators} 60--240 (шаг 30), \f{learning\_rate} $0.025$--$0.20$ (log), \f{num\_leaves} 7--39, \f{min\_child\_samples} 8--64 (log) & 180, $0.04648$, 12, 8\\
+    \bottomrule
+    \end{tabular}}
 \end{table*}
 
-\subsection{Результаты}
-\begin{table*}[t]
+$C$ охватывает сильную и слабую регуляризацию. На log-шкале перебираем величины, различающиеся в «разы». Глубина и размер листа ограничивают сложность дерева, доля признаков в Random Forest – сходство деревьев. Сетка 50--150 деревьев ограничивает время поиска (табл.~\ref{tab:spaces}). У LightGBM число итераций подбирал вместе с шагом.
+
+\begin{table*}[!t]
+    \subsection{Результаты}
     \centering
-    \caption{Итоговое сравнение моделей. F1 — macro. Инференс на одном объекте — медиана по 100 вызовам \texttt{predict} на одной строке.}
-    \label{tab:models}
-    \small
-    \begin{tabular}{lccccc}
-        \toprule
-        \textbf{Модель} & \textbf{CV F1} & \textbf{Holdout F1} & \textbf{Public F1} & \textbf{Обучение, с} & \textbf{1 объект, мс} \\
-        \midrule
-        Logistic Regression & 0.XXX & 0.XXX & 0.XXX & & \\
-        Decision Tree       & 0.XXX & 0.XXX & 0.XXX & & \\
-        Random Forest       & 0.XXX & 0.XXX & 0.XXX & & \\
-        Gradient Boosting   & 0.XXX & 0.XXX & 0.XXX & & \\
-        \bottomrule
-    \end{tabular}
+    \caption{Macro F1, CV с seed 42. $\Delta=\mathrm{holdout}-\mathrm{CV}$. Время обучения на 6400 строках. На пациента – медиана 100 прогнозов после прогрева, включая препроцессинг. Все шесть моделей замерены в одном прогоне.}\label{tab:models}
+    {\small\setlength{\tabcolsep}{4pt} \begin{tabular}{@{}llrrrrrr@{}}
+    \toprule
+    Сабмит & Модель & CV F1 & Holdout F1 & $\Delta$ & Public F1 & Обучение, с & Пациент, мс\\
+    \midrule
+    SUB-001 & Gradient Boosting & .7995 & .7930 & $-.0065$ & .80890 & 1.9790 & 8.2389\\
+    SUB-002 & Decision Tree & .7063 & .7056 & $-.0007$ & .73784 & .1253 & 7.1774\\
+    SUB-003 & Logistic Regression & .6788 & .6834 & $+.0046$ & .69324 & .3917 & 8.1371\\
+    SUB-004 & Random Forest & .7636 & .7669 & $+.0033$ & .78496 & 5.0720 & 14.7763\\
+    SUB-005 & Смесь двух LightGBM & .8047 & .7964 & $-.0082$ & .81242 & 1.2912 & 10.6199\\
+    SUB-006 & LightGBM + CatBoost & .8137 & .8062 & $-.0076$ & \textbf{.82261} & 43.3859 & 34.4781\\
+    \bottomrule
+    \end{tabular}}
+    \par\medskip\RaggedRight Максимальный $|\Delta|$ у SUB-005 ($0.0082$).
 \end{table*}
 
-\textit{Лучшие гиперпараметры каждой модели — списком или в приложении.}
-
+\Needspace{13\baselineskip}
 \subsection{Анализ Optuna}
-% График сходимости, комментарий: где поиск вышел на плато.
+
+За последние 10 проб логистическая регрессия прибавила $0.0001$, Gradient Boosting – $0.0010$. За 50 проб лидер определился. У Decision Tree максимум на 46-й попытке, прирост после 40-й – $0.0051$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{optuna.png}
+    \caption{Лучший CV F1 к trial $N$. Random Forest достиг максимума на 20-й пробе.}\label{fig:optuna}
+\end{figure}
 
 \subsection{Почему модели расположились именно так}
-\textit{Свяжите результат с inductive bias моделей и с наблюдениями из EDA: какие зависимости в данных линейная модель описать не может, почему одиночное дерево хуже леса, за счёт чего бустинг обгоняет лес.}
 
-% Ваш текст.
+В логистической регрессии изменение пульса одинаково сдвигает логит класса при любой жалобе. Decision Tree может выбрать свой порог пульса в каждой ветви. Random Forest усредняет деревья и уменьшает разброс. Gradient Boosting последовательно поправляет ансамбль. На ESI-2 его F1 составил $0.584$, тогда как у Random Forest $0.524$.
 
-% ================================================================
-\section{Bias-variance}
-\label{sec:bv}
+\section{Bias-variance}\label{sec:bv}
 
-\textbf{Критерии оценивания (2 балла).}
-\begin{itemize}
-    \item 1 балл — \textbf{график}. Decision Tree, меняется только \texttt{max\_depth} от 1 до 25, остальные гиперпараметры по умолчанию. Для каждой глубины на 5-fold CV посчитаны два числа: macro F1 на train-части фолдов (train F1) и на валидационных фолдах (validation F1), оба усреднены по фолдам. На одном графике две линии; на нём отмечены три зоны — underfitting, оптимальная глубина, overfitting — и подписано, где какая.
-    \item 1 балл — \textbf{объяснение}, в котором есть ответы на три вопроса:
-    \begin{enumerate}
-        \item Что происходит с train F1 и validation F1 при малой и при большой глубине и почему? Например: почему у глубокого дерева train F1 близок к 1, а validation F1 падает?
-        \item Как это связано с bias и variance: какая из двух частей ошибки преобладает в зоне underfitting, а какая в зоне overfitting?
-        \item Что изменилось бы, если бы обучающая выборка была в несколько раз больше: как сдвинулись бы кривые и оптимальная глубина? Какую часть ошибки больше данных уменьшает, а какую нет?
-    \end{enumerate}
-\end{itemize}
-На графике должны быть подписаны оси и отмечены все три зоны.
+Менял только \f{max\_depth} (1--25). Train F1 и validation F1 усреднил по пяти фолдам.
 
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=\columnwidth]{figures/bias_variance.png}
-%     \caption{Train и validation F1 от \texttt{max\_depth}.}
-% \end{figure}
-
-% Ваш текст.
-
-% ================================================================
-\section{Ансамбли}
-\label{sec:ensembles}
-
-\textbf{Критерии оценивания (2 балла).}
-\begin{itemize}
-    \item 1 балл — \textbf{эксперимент}. Random Forest с лучшими гиперпараметрами из Optuna, меняется только \texttt{n\_estimators}: 1, 10, 50, 100, 200, 400. Для каждого значения измерены три величины: macro F1 (на CV или на holdout — укажите, где), время обучения и время предсказания на одном объекте. То же самое сделано для бустинга (число итераций при фиксированном \texttt{learning\_rate}). Результат — на графиках или в таблице; ось \texttt{n\_estimators} удобно брать в логарифмическом масштабе.
-    \item 1 балл — \textbf{вывод}, в котором есть ответы на три вопроса:
-    \begin{enumerate}
-        \item После какого числа деревьев качество леса почти перестаёт расти? Назовите конкретное значение и критерий, по которому вы так решили (например, «прирост меньше 0.005»).
-        \item Почему так происходит? Объясните через то, что делает усреднение деревьев: какую часть ошибки (bias или variance) оно уменьшает, а какую нет.
-        \item Чем рост \texttt{n\_estimators} в лесу отличается от роста числа итераций в бустинге? Сравните графики двух моделей: как выглядит качество при 1 дереве, как растёт, может ли ухудшиться при слишком большом числе.
-    \end{enumerate}
-\end{itemize}
-В выводе должно быть указано конкретное значение \texttt{n\_estimators}, начиная с которого прирост качества несущественен.
-
-
-% Ваш текст и графики.
-
-% ================================================================
-\section{Macro vs micro F1}
-\label{sec:metrics}
-
-\textbf{Критерии оценивания (2 балла).}
-\begin{itemize}
-    \item 1 балл — \textbf{сравнение метрик}:
-    \begin{enumerate}
-        \item определения macro F1 и micro F1 (формулами или словами);
-        \item посчитайте для одной модели micro F1 и accuracy и сравните их. Объясните, почему в задаче, где у каждого объекта ровно один правильный класс, они получаются одинаковыми, и что из этого следует для редких классов;
-        \item таблица~\ref{tab:metrics}: macro F1, micro F1 и F1 по каждому классу на holdout для всех моделей и для константы (всегда предсказывать самый частый класс);
-        \item \textbf{пара моделей, которые macro и micro F1 ранжируют по-разному}: модель A лучше B по micro F1, но хуже по macro F1 (или наоборот). Объясните по столбцам F1 по классам, за счёт каких классов так получилось.
-    \end{enumerate}
-    \item 1 балл — \textbf{подбор гиперпараметров под разные метрики}. Возьмите Decision Tree (он обучается быстрее всех) и запустите Optuna дважды с одинаковым пространством поиска и 50 trials. Различается только метрика, которую Optuna максимизирует: в первый раз micro F1 (\texttt{scoring="f1\_micro"} в \texttt{cross\_val\_score}), во второй — macro F1 (\texttt{scoring="f1\_macro"}). Заполните таблицу~\ref{tab:optuna_metric}: найденные гиперпараметры и метрики на holdout для обоих запусков. В выводе ответьте: чем отличаются найденные деревья, на каких классах разница сильнее всего и что «поощряет» каждая метрика.
-\end{itemize}
-
-\begin{table*}[t]
+\begin{figure}[htbp]
     \centering
-    \caption{Метрики на holdout.}
-    \label{tab:metrics}
-    \small
-    \begin{tabular}{lccccccc}
-        \toprule
-        \textbf{Модель} & \textbf{macro F1} & \textbf{micro F1} & \textbf{ESI-1} & \textbf{ESI-2} & \textbf{ESI-3} & \textbf{ESI-4} & \textbf{ESI-5} \\
-        \midrule
-        Константа           & & & & & & & \\
-        Logistic Regression & & & & & & & \\
-        Decision Tree       & & & & & & & \\
-        Random Forest       & & & & & & & \\
-        Gradient Boosting   & & & & & & & \\
-        \bottomrule
-    \end{tabular}
-\end{table*}
+    \includegraphics[width=\linewidth]{depth.png}
+    \caption{Macro F1 от глубины. Звезда – максимум на валидации, зелёная полоса – первая глубина в пределах $0.01$ от него.}\label{fig:depth}
+\end{figure}
 
-\begin{table*}[t]
+На глубине 1 два листа на пять классов и обе F1 равны $0.201$ (большой bias). По допуску $0.01$ хватает глубины 19. От 19 до 25 train F1 растёт с $0.878$ до $0.957$, validation F1 – с $0.672$ до $0.682$.
+
+Больше пациентов в листьях снизили бы variance и разрыв. Оптимум мог бы сдвинуться вправо. Однако у дерева глубины 1 сохранится большой bias.
+
+\section{Ансамбли}\label{sec:ensembles}
+
+Менял только \f{n\_estimators}. Остальные параметры из табл.~\ref{tab:spaces}, в том числе \f{learning\_rate} $0.04648$ у LightGBM.
+
+\begin{table}[htbp]
     \centering
-    \caption{Decision Tree: Optuna максимизирует micro F1 или macro F1. Метрики — на holdout.}
-    \label{tab:optuna_metric}
-    \small
-    \resizebox{\textwidth}{!}{%
-    \begin{tabular}{lp{0.22\textwidth}ccccccc}
-        \toprule
-        \textbf{Метрика Optuna} & \textbf{Лучшие гиперпараметры} & \textbf{macro F1} & \textbf{micro F1} & \textbf{ESI-1} & \textbf{ESI-2} & \textbf{ESI-3} & \textbf{ESI-4} & \textbf{ESI-5} \\
-        \midrule
-        micro F1 & & & & & & & & \\
-        macro F1 & & & & & & & & \\
-        \bottomrule
-    \end{tabular}%
-    }
+    \caption{CV F1, обучение на 6400 строках (с), прогноз на пациента (мс). Замеры из ноутбука.}\label{tab:ensemble}
+    {\footnotesize\setlength{\tabcolsep}{3pt} \begin{tabular}{@{}r rrr rrr@{}}
+    \toprule
+    &\multicolumn{3}{c}{Random Forest}&\multicolumn{3}{c}{Gradient Boosting}\\
+    \cmidrule(lr){2-4}\cmidrule(l){5-7}
+    $N$ & F1 & с & мс & F1 & с & мс\\
+    \midrule
+    1 & .6512 & .07 & 6.39 & .1094 & .05 & 7.58\\
+    10 & .7413 & .64 & 7.29 & .6691 & .09 & 6.92\\
+    50 & .7597 & 2.95 & 9.01 & .7768 & .22 & 7.09\\
+    100 & .7644 & 5.90 & 16.26 & .7954 & .45 & 7.55\\
+    200 & .7633 & 11.61 & 17.20 & .7982 & .80 & 7.21\\
+    400 & .7632 & 23.11 & 27.49 & .7930 & 1.48 & 7.94\\
+    \bottomrule
+    \end{tabular}}
+\end{table}
+
+У Random Forest одно дерево даёт CV F1 $0.6512$. Начиная с 50 деревьев, выигрыш меньше $0.005$ даже до лучшей точки на сетке ($0.7644-0.7597=0.0047$). Усреднение уменьшает variance, а общие ошибки деревьев остаются.
+
+У Gradient Boosting первая итерация с малым шагом даёт $0.1094$. К 200 итерациям CV F1 доходит до $0.7982$, а к 400 падает до $0.7930$.
+
+\section{Macro vs micro F1}\label{sec:metrics}
+
+Macro F1 – среднее F1 пяти классов. Для micro F1 сначала суммируем $TP$, $FP$ и $FN$ по классам. У пациента один класс, поэтому каждая ошибка даёт ровно один $FP$ и один $FN$. Отсюда micro F1 равен доле верных ответов. У LightGBM на holdout micro F1 и accuracy равны $1300/1600=0.8125$.
+
+\begin{table*}[!t]
+    \centering
+    \caption{F1 на holdout. Константа всем предсказывает ESI-3.}\label{tab:metrics}
+    {\small \begin{tabular}{@{}lrrrrrrr@{}}
+    \toprule
+    Модель & macro F1 & micro F1 & ESI-1 & ESI-2 & ESI-3 & ESI-4 & ESI-5\\
+    \midrule
+    Константа & .1094 & .3762 & .0000 & .0000 & .5468 & .0000 & .0000\\
+    Decision Tree, глубина 1, \f{balanced} & .2172 & .3419 & .5854 & .0000 & .0000 & .5005 & .0000\\
+    \midrule
+    Logistic Regression & .6834 & .7088 & .8172 & .3930 & .7754 & .6916 & .7396\\
+    Decision Tree & .7056 & .7456 & .7674 & .4526 & .8111 & .7621 & .7347\\
+    Random Forest & .7669 & .7969 & .8431 & .5240 & .8574 & .7888 & .8213\\
+    Gradient Boosting & .7930 & .8125 & .8750 & .5836 & .8590 & .8140 & .8337\\
+    Смесь (SUB-005) & .7964 & .8200 & .8723 & .5741 & .8682 & .8214 & .8462\\
+    Ансамбль (SUB-006) & .8062 & .8238 & .9053 & .5775 & .8687 & .8265 & .8529\\
+    \bottomrule
+    \end{tabular}}
 \end{table*}
 
 \subsection{Пара моделей с разным ранжированием}
-% Ваш текст: какие модели, за счёт каких классов (см. таблицу~\ref{tab:metrics}).
+
+Константа выигрывает по micro F1 за счёт частого ESI-3. У Decision Tree глубины 1 выше F1 для ESI-1 и ESI-4, поэтому выше macro F1 ($0.2172$ против $0.1094$, табл.~\ref{tab:metrics}).
 
 \subsection{Подбор под micro F1 и под macro F1}
-% Ваш текст: чем отличаются найденные деревья (см. таблицу~\ref{tab:optuna_metric}).
 
-% ================================================================
-\section{SHAP и важность признаков}
-\label{sec:shap}
+Micro F1 поощряет число верных ответов, macro F1 даёт равный вес классам. Изменился только \f{min\_samples\_leaf} (табл.~\ref{tab:optuna_metric}).
 
-\textbf{Критерии оценивания (2 балла).}
-\begin{itemize}
-    \item 1 балл — SHAP по классам (одинаково ли важны признаки для ESI-1 и ESI-5), dependence plot \texttt{heart\_rate} для ESI-1 с раскраской по \texttt{sbp} с интерпретацией.
-    \item 1 балл — сравнение MDI леса, permutation importance на holdout и mean $|\text{SHAP}|$ (таблица~\ref{tab:importance}): где рейтинги расходятся и почему; отдельно про \texttt{queue\_ticket} и про тройку \texttt{sbp} / \texttt{dbp} / \texttt{mbp}; почему SHAP объясняет модель, а не данные.
-\end{itemize}
-SHAP-значения в многоклассовой задаче вычисляются отдельно для каждого класса; выводы о важности признаков должны это учитывать.
+На holdout лист с минимумом 11 пациентов выиграл по обеим метрикам, больше всего на ESI-2.
+
+\begin{table*}[!t]
+    \centering
+    \caption{Decision Tree, 50 trials на метрику. Фолды, seed и диапазоны одинаковые. Оба раза Optuna выбрала глубину 21, gini и \f{class\_weight=None}. Метрики на holdout.}\label{tab:optuna_metric}
+    {\small \begin{tabular}{@{}lrrrrrrrr@{}}
+    \toprule
+    Метрика Optuna & Мин. в листе & macro F1 & micro F1 & ESI-1 & ESI-2 & ESI-3 & ESI-4 & ESI-5\\
+    \midrule
+    micro F1 & 11 & .7084 & .7481 & .7674 & .4615 & .8140 & .7619 & .7371\\
+    macro F1 & 10 & .7056 & .7456 & .7674 & .4526 & .8111 & .7621 & .7347\\
+    \bottomrule
+    \end{tabular}}
+\end{table*}
+
+\section{SHAP и важность признаков}\label{sec:shap}
 
 \subsection{Важность по классам}
-% График mean |SHAP| по классам.
+
+Жалоба лидирует. SHAP пульса выше у ESI-1 ($0.256$ против $0.026$), а визитов у ESI-5 ($0.553$ против $0.023$).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\linewidth]{shap_classes.png}
+    \caption{Mean $|\mathrm{SHAP}|$ на holdout для SUB-001. Вклады one-hot столбцов сложены до взятия модуля.}\label{fig:shap}
+\end{figure}
 
 \subsection{Dependence plot}
-% Интерпретация графика и возможное применение наблюдения.
+
+При пульсе до 60 уд/мин медианный вклад в оценку ESI-1 отрицательный во всех трёх группах давления. Выше 110 уд/мин вклад положительный и сильнее при низком давлении: $2.57$ при \f{sbp} до 100 мм рт.~ст. против $1.10$ при \f{sbp} выше 140.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{shap_pulse.png}
+    \caption{SHAP пульса для ESI-1. Цвет точки – систолическое давление пациента (\f{sbp}).}\label{fig:pulse}
+\end{figure}
 
 \subsection{Три способа считать важность}
+
 \begin{table}[H]
     \centering
-    \caption{Место признака в рейтинге важности.}
-    \label{tab:importance}
-    \small
-    \begin{tabular}{@{}lccc@{}}
-        \toprule
-        \textbf{Признак} & \textbf{MDI} & \textbf{Perm.} & \textbf{SHAP} \\
-        \midrule
-        \texttt{chief\_complaint} & & & \\
-        \texttt{queue\_ticket}    & & & \\
-        \texttt{sbp}              & & & \\
-        \ldots                    & & & \\
-        \bottomrule
-    \end{tabular}
+    \caption{Место среди 16 признаков. MDI и permutation importance для Random Forest, SHAP для LightGBM.}\label{tab:importance}
+    {\small \begin{tabular}{@{}lrrr@{}}
+    \toprule
+    Признак & MDI & Perm. & SHAP\\
+    \midrule
+    \f{chief\_complaint} & 1 & 1 & 1\\
+    \f{age} & 4 & 2 & 2\\
+    \f{heart\_rate} & 3 & 6 & 5\\
+    \f{weight\_kg} & 13 & 15 & 7\\
+    \f{queue\_ticket} & 12 & 14 & 15\\
+    \f{sbp} & 7 & 7 & 9\\
+    \f{dbp} & 16 & 13 & 14\\
+    \f{mbp} & 14 & 16 & 13\\
+    \bottomrule
+    \end{tabular}}
 \end{table}
 
-% Ваш текст.
+У \f{queue\_ticket} много порогов для разбиения, поэтому на train он набирает важность по MDI. После перестановки на holdout macro F1 даже вырос на $0.0017$ (среднее по 10 повторам).
 
-% ================================================================
-\section{Финальная модель и выводы}
-\label{sec:final}
+Перестановка \f{sbp} снизила macro F1 леса на $0.0217$. При перестановке \f{dbp} и \f{mbp} оценка выросла на $0.0006$ и $0.0057$. При каждом замере оставались два коррелирующих показателя давления.
 
-\textbf{Критерии оценивания (3 балла).}
-\begin{itemize}
-    \item 1 балл — обоснование выбора финальной модели: почему она, какие эксперименты к этому привели, почему альтернативы хуже; выбор модели при ограничении 10 ms на пациента, подтверждённый замером.
-    \item 1 балл — описание как минимум одного неудачного эксперимента с объяснением причин неудачи.
-    \item 1 балл — ответы на вопросы подраздела «Выводы», опирающиеся на результаты проведённых экспериментов.
-\end{itemize}
+У \f{weight\_kg} 7-е место по SHAP у LightGBM и 15-е по permutation importance у Random Forest. SHAP раскладывает оценку обученной модели на вклады признаков относительно базового значения. Это позволяет судить о прогнозе модели.
 
-\subsection{Выбор финальной модели}
-% Ваш текст.
+\section{Финальная модель и выводы}\label{sec:final}
 
-\subsection{Ограничение 10 ms на пациента}
-\textit{Укажите, какие модели удовлетворяют ограничению, и приведите результаты замеров.}
+\subsection{Промежуточный ансамбль SUB-005}
 
-% Ваш текст.
+На первом разбиении CV исходный LightGBM лучше распознавал ESI-1, поэтапный – ESI-3--5.
 
+В поэтапном варианте первый LightGBM оценивает вероятность ESI-1, второй – ESI-2 среди оставшихся, третий делит остаток вероятности между ESI-3--5. Для SUB-005 я усреднил вероятности исходной и поэтапной моделей с весами $1:1$.
+
+Для отправки требовал прироста на каждом из трёх разбиений и хотя бы на 9 фолдах из 15. Пациенты те же, меняется только seed. Поправку к вероятности ESI-2 подбирал на трёх внутренних фолдах.
+
+\begin{table*}[!t]
+    \centering
+    \caption{Средний CV macro F1. Обе смеси выиграли у SUB-001 на 10 фолдах из 15.}\label{tab:blend}
+    {\small \begin{tabular}{@{}lrrrr@{}}
+    \toprule
+    Вариант & seed 42 & seed 113 & seed 271 & Среднее\\
+    \midrule
+    Исходный LightGBM (SUB-001) & .79954 & .79518 & .79353 & .79609\\
+    Смесь без поправки (SUB-005) & .80468 & .79909 & .79780 & \textbf{.80052}\\
+    Смесь с поправкой & .80442 & .79856 & .79779 & .80025\\
+    \bottomrule
+    \end{tabular}}
+\end{table*}
+
+Выбрал смесь без поправки (табл.~\ref{tab:blend}). На holdout выигрыш пришёлся на ESI-3--5, а F1 для ESI-2 снизился с $0.58359$ до $0.57407$ (табл.~\ref{tab:metrics}). Для сабмита обучил обе модели на всех 8000 строках. В \f{lightgbm\_mix.csv} изменились всего 134 ответа из 5000, Public F1 вырос на $0.00352$.
+
+\Needspace{10\baselineskip}
+\subsection{Финальный ансамбль SUB-006}
+
+В равных долях усреднил вероятности SUB-005, LightGBM с частотами классов по жалобе и CatBoost. Для двух новых компонентов добавил отношение пульса к систолическому давлению, пульсовое давление, отношение сатурации к частоте дыхания и индекс массы тела. Частоты классов для обучающих строк LightGBM оценивал по внутренним фолдам.
+
+По трём разбиениям средний CV macro F1 у SUB-005 составил $0.80052$, у отдельного CatBoost – $0.78842$, у LightGBM с новыми признаками и частотами – $0.80902$. Смесь SUB-005 с этим LightGBM дала $0.80979$, добавление CatBoost подняло оценку до $0.81033$.
+
+SUB-006 обошёл SUB-005 на 14 фолдах из 15. При seed 2026 он выиграл на 4 фолдах из 5 и поднял средний F1 с $0.80205$ до $0.81050$.
+
+После выбора по CV проверил ошибки на том же holdout. Macro F1 вырос с $0.79643$ до $0.80616$, больше всего прибавил ESI-1 (с $0.87234$ до $0.90526$).
+
+Для \f{triage\_next.csv} обучил компоненты на всех 8000 размеченных строках. Относительно SUB-005 изменились 108 из 5000 ответов. Public macro F1 вырос с $0.81242$ до $\mathbf{0.82261}$, на $0.01019$.
+
+\subsection{Ограничение 10 мс на пациента}
+
+По медиане в лимит уложились SUB-001 ($8.24$ мс), Decision Tree ($7.18$ мс) и Logistic Regression ($8.14$ мс). Выбрал бы SUB-001 с лучшим CV F1 из этой тройки. У Random Forest, Смеси и Ансамбля задержка составила $14.78$, $10.62$ и $34.48$ мс (табл.~\ref{tab:models}).
+
+\newpage
 \subsection{Что не сработало}
-\textit{Опишите эксперимент, который не дал ожидаемого результата: исходную гипотезу, полученный результат и причину расхождения.}
 
-% Ваш текст.
+При $C=7.603$ веса \f{balanced} помогли Logistic Regression на одном фолде из пяти. CV F1 упал с $0.6788$ до $0.6672$. Средняя полнота ESI-1 выросла с $0.736$ до $0.845$, точность упала с $0.893$ до $0.600$.
+
+У поэтапного LightGBM с поправкой CV F1 вырос с $0.79954$ до $0.80162$ только за счёт двух фолдов. На holdout он хуже различал ESI-1 и ESI-2, и macro F1 снизился до $0.79081$.
 
 \subsection{Выводы}
-\begin{enumerate}
-    \item \textit{Какие гипотезы из раздела~\ref{sec:data} подтвердились, а какие нет?}
-    \item \textit{Классы ESI упорядочены: ошибка ESI-1 $\to$ ESI-2 менее критична, чем ESI-1 $\to$ ESI-5, однако macro F1 эти ошибки не различает. Какую метрику вы бы предложили вместо неё и что она показывает на ваших моделях?}
-    \item \textit{Какие выводы о выборе и настройке моделей можно сделать по результатам работы?}
-\end{enumerate}
 
-% Ваш текст.
+Первая гипотеза не подтвердилась. При равных весах Logistic Regression показала лучший CV F1. Две другие подтвердились. Gradient Boosting обошёл Logistic Regression на $0.1208$ по CV, а эффект перестановки талона у Random Forest уложился в $0.005$.
 
-% ================================================================
-% ================================================================
+Для оценки ошибки в уровнях ESI использовал бы MAE, среднее $|\hat y-y|$. Ошибка ESI-1 $\to$ ESI-5 даёт четыре уровня, ESI-1 $\to$ ESI-2 – один.
+
+На holdout у константы MAE $0.7900$, у Logistic Regression $0.3456$, у Decision Tree $0.3169$, у Random Forest $0.2544$, у LightGBM $0.2312$, у SUB-005 $0.2244$, у SUB-006 $0.2200$.
+
+После 50 деревьев выигрыш Random Forest по CV был меньше $0.005$. Сравнение на нескольких разбиениях помогло выбрать смесь с устойчивым приростом. По сравнению с исходным LightGBM финальный ансамбль прибавил $0.01371$ на Public. На holdout при переходе от SUB-005 к SUB-006 вырос F1 всех пяти классов (табл.~\ref{tab:metrics}).
+
 \end{document}
